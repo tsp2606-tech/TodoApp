@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const ScreenBg = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -70,14 +70,20 @@ export const ScreenBg = () => {
     return true;
   });
 
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setDarkMode(isDark);
+  }, []);
+
   const onToggleClick = () => {
-    setDarkMode(!darkMode);
-    if (darkMode) {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-    } else {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    if (newDarkMode) {
       document.documentElement.classList.remove("light");
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
     }
   };
   return (
@@ -256,7 +262,11 @@ export const ScreenBg = () => {
                           </svg>
                         </div>
                       ) : (
-                        <div className="w-[22px] h-[22px] rounded-full border-2 border-slate-300 dark:border-slate-600 bg-transparent hover:border-slate-400 dark:hover:border-slate-500"></div>
+                        <div className={`w-[22px] h-[22px] rounded-full border-2 bg-transparent transition-colors ${
+                          darkMode 
+                            ? "border-slate-600 hover:border-slate-500" 
+                            : "border-slate-300 hover:border-slate-400"
+                        }`}></div>
                       )}
                     </button>
 
@@ -284,8 +294,8 @@ export const ScreenBg = () => {
                       <span
                         className={`text-[15px] flex-1 truncate transition-all duration-300 ${
                           task.completed
-                            ? "line-through text-slate-400 dark:text-slate-500"
-                            : "text-slate-700 dark:text-slate-200"
+                            ? (darkMode ? "line-through text-slate-500" : "line-through text-slate-400")
+                            : (darkMode ? "text-slate-200" : "text-slate-700")
                         }`}
                       >
                         {task.text}
@@ -295,7 +305,9 @@ export const ScreenBg = () => {
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                     <button
                       onClick={() => startEdit(task)}
-                      className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors focus:outline-none"
+                      className={`p-1.5 text-slate-400 transition-colors focus:outline-none ${
+                        darkMode ? "hover:text-slate-200" : "hover:text-slate-600"
+                      }`}
                       title="Edit task"
                     >
                       <svg
