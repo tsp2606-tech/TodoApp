@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { HeaderSection } from "@/components/HeaderSection";
 import { ProcessSection } from "@/components/ProgcessSection";
 import { FormSection } from "@/components/FormSection";
@@ -6,18 +6,89 @@ import { TabsSection } from "@/components/TabsSection";
 import { ListSection } from "@/components/ListSection";
 
 export const Home = () => {
-  const [darkMode, setDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
-  const [newTask, setNewTask] = useState("");
+  //edit task
+  const [editingTaskId, setEditingTaskId] = React.useState(null);
+  const [editingText, setEditingText] = React.useState("");
 
-  const handleNewTaskChange = (e) => {
-    setNewTask(e.target.value);
+  const handleEditTask = (taskId, currentText) => {
+    setEditingTaskId(taskId);
+    setEditingText(currentText);
+  };
+  const handleSaveEdit = (taskId) => {
+    const trimmedText = editingText.trim();
+
+    if (trimmedText) {
+      updateTaskText(taskId, trimmedText);
+    }
+
+    setEditingTaskId(null);
+    setEditingText("");
   };
 
+  const updateTaskText = (taskId, newText) => {
+    const updatedTasks = listTask.map((task) =>
+      task.id === taskId ? { ...task, text: newText } : task,
+    );
+    setListTask(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  };
+  // delete task function
+  const deleteTask = (taskId) => {
+    const updatedTasks = listTask.filter((task) => task.id !== taskId);
+    setListTask(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  };
+
+  // toggle task completion function
+  const toggleTaskCompletion = (taskId) => {
+    const updatedTasks = listTask.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task,
+    );
+    setListTask(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  };
+
+  //darkmode state
+  const [darkMode, setDarkMode] = useState(false);
+  //tab state
+  const [activeTab, setActiveTab] = useState("all");
+  //list task state
+  const [listTask, setListTask] = React.useState(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
+
+  //add task function
+  const addTask = (task) => {
+    const newTask = {
+      id: Date.now(),
+      text: task,
+      completed: false,
+    };
+
+    const updatedTasks = [...listTask, newTask];
+    setListTask(updatedTasks);
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  };
+
+  //input value state
+  const [inputValue, setInputValue] = React.useState("");
+
+  //handle submit function
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (inputValue.trim() !== "") {
+      addTask(inputValue.trim());
+      setInputValue("");
+    }
+  };
+
+  //handle tab click function
   const handleTabClick = (e) => {
     setActiveTab(e.currentTarget.dataset.tab);
   };
 
+  //toggle darkmode function
   const onToggleClick = () => {
     setDarkMode(!darkMode);
     if (darkMode) {
@@ -42,22 +113,30 @@ export const Home = () => {
       >
         <div className="p-8">
           <HeaderSection darkMode={darkMode} onToggleClick={onToggleClick} />
-          
+
           <ProcessSection darkMode={darkMode} />
-          
+
           <FormSection
             darkMode={darkMode}
-            newTask={newTask}
-            handleNewTaskChange={handleNewTaskChange}
+            newTask={inputValue}
+            handleNewTaskChange={(e) => setInputValue(e.target.value)}
+            onSubmit={handleSubmit}
           />
-          
+
           <TabsSection
+            setListTask={setListTask}
             darkMode={darkMode}
             activeTab={activeTab}
             handleTabClick={handleTabClick}
           />
-          
-          <ListSection darkMode={darkMode} />
+
+          <ListSection
+            darkMode={darkMode}
+            listTask={listTask}
+            deleteTask={deleteTask}
+            toggleTaskCompletion={toggleTaskCompletion}
+            handleEditTask={handleEditTask}
+          />
         </div>
       </div>
     </div>
